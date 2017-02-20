@@ -87,17 +87,17 @@ public interface JkChatConnectionListener {
      * socket连接后，服务器处理完会回调此方法
      * @param
      */
-    public void onGetServerMessageDone();
+    void onGetServerMessageDone();
 
     /**
      * 用户发送包含敏感词，则回调此方法
      * @param
      */
-    public void onFilterAskQuestion();
+    void onFilterAskQuestion();
 
     /**
      * 禁止用户提问，则回调此方法
      * @param
      */
-    public void onForbidAskQuestion();
+    void onForbidAskQuestion();
 }

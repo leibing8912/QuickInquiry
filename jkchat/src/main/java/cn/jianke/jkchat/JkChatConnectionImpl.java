@@ -304,6 +304,7 @@ public class JkChatConnectionImpl implements JkChatConnection, WebSocket.Connect
     @Override
     public boolean clientPositionClose(String tid) {
         String ackStr = ackMsg(tid, USER_INITIATES_THE_CONVERSATION, "");
+        // 发送消息主动关闭在线咨询对话
         if (mWebSocket != null)
             mWebSocket.sendTextMessage(ackStr);
         return isClosedSucess;

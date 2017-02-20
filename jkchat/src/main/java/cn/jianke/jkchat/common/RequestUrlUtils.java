@@ -13,7 +13,9 @@ public class RequestUrlUtils {
     public final static boolean IS_BJ_DEBUG = false;
     // 内网：192.168.70.141，外网：askwx.sgz88.com 正式：askswt.sgz88.com 站点：ask
     // 192.168.70.102
+    // websocket服务器连接地址
     public static String WS_CONNECT_FORMAT = "";
+    // 获取评价信息
     public static String PRAISE_URL = "";
     // 判断是否有未读消息
     public static String NO_READ_URL = "";
