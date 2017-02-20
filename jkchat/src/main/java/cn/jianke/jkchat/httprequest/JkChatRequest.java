@@ -81,6 +81,7 @@ public class JkChatRequest {
      */
     public void removeCall(Call mCall){
         if (mCallStack != null && mCall != null){
+            mCall.cancel();
             mCallStack.remove(mCall);
         }
     }
@@ -99,7 +100,7 @@ public class JkChatRequest {
         // 遍历取消请求
         for (int i=0;i<mCallStack.size();i++){
             Call mCall = mCallStack.get(i);
-            mCall.cancel();
+            removeCall(mCall);
         }
     }
 
