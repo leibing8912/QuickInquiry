@@ -14,6 +14,14 @@ import cn.jianke.jkchat.domain.JkChatSession;
  * @createTime: 2017/2/20
  */
 public class JKChatServiceImpl implements JkChatService{
+    // 被过滤了
+    public final static int SENDSTATUS_FILTERED = 0;
+    // 清除EditText的文字
+    public final static int SENDSTATUS_CLEAN_ET = 1;
+    // 可以发送文字
+    public final static int SENDSTATUS_CAN_SEND = 2;
+    // 禁止提问
+    public final static int SENDSTATUS_FORBID = 3;
     // Context weakRef
     private WeakReference<Context> mContextWeakRef;
     // 健客聊天服务实现单例
@@ -22,6 +30,8 @@ public class JKChatServiceImpl implements JkChatService{
     private JkChatApi mJkChatApi;
     // 健客聊天连接
     private JkChatConnection mJkChatConnection;
+    // 健客聊天配置
+    private JkChatConfig mJkChatConfig;
     // 健客聊天api监听
     private JkChatApiListener mJkChatApiListener = new JkChatApiListener() {
         @Override
@@ -191,7 +201,8 @@ public class JKChatServiceImpl implements JkChatService{
 
     @Override
     public void setConfig(JkChatConfig config) {
-
+        // 设置健客聊天配置
+        this.mJkChatConfig = config;
     }
 
     @Override

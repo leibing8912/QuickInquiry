@@ -2,7 +2,7 @@ package cn.jianke.jkchat;
 
 /**
  * @className: JkChatConfig
- * @classDescription: 健客聊天配置类
+ * @classDescription: 健客聊天配置
  * @author: leibing
  * @createTime: 2017/2/17
  */
