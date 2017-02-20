@@ -1,5 +1,8 @@
 package cn.jianke.jkchat.common;
 
+import org.json.JSONObject;
+
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,5 +87,26 @@ public class StringUtils {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * 将map数据转出为JSON字符串
+	 * @author leibing
+	 * @createTime 2017/2/20
+	 * @lastModify 2017/2/20
+	 * @param map 参数名-值
+	 * @return JSON数据
+	 * @return
+	 */
+	public static String mapToJson(Map<String,String> map ){
+		JSONObject json = new JSONObject();
+		try{
+			for(Map.Entry<String,String> entry : map.entrySet()){
+				json.put(entry.getKey(), entry.getValue());
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return json.toString();
 	}
 }

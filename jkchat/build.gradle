@@ -25,4 +25,8 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     // 依赖okhttp3
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    // 依赖gson库
+    compile 'com.google.code.gson:gson:2.7'
+    // websocket库
+    compile project(':autobahn')
 }
