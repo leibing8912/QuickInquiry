@@ -1,10 +1,9 @@
-package cn.jianke.jkchat.data.Shareperferences;
+package cn.jianke.jkchat.data.shareperferences;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import java.lang.ref.WeakReference;
-
 /**
  * @className: PatientShareperferences
  * @classDescription: 就诊人轻量储存数据

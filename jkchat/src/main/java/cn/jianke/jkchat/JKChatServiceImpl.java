@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import cn.jianke.jkchat.common.RequestUrlUtils;
 import cn.jianke.jkchat.common.StringUtils;
-import cn.jianke.jkchat.data.Shareperferences.PatientShareperferences;
+import cn.jianke.jkchat.data.shareperferences.PatientShareperferences;
 import cn.jianke.jkchat.domain.JkChatConversation;
 import cn.jianke.jkchat.domain.JkChatMessage;
 import cn.jianke.jkchat.domain.JkChatSession;
@@ -757,7 +757,7 @@ public class JKChatServiceImpl implements JkChatService{
     public void setOnClientClosedListener(OnClientClosedListener mOnClientClosedListener) {
         this.mOnClientClosedListener = mOnClientClosedListener;
     }
-    
+
     /**
      * @interfaceName: OnClientClosedListener
      * @interfaceDescription: 医生客户端关闭的时候调用

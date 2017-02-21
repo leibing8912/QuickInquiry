@@ -1,7 +1,9 @@
 package cn.jianke.jkchat.domain;
 
-import java.util.ArrayList;
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
 import java.util.UUID;
+import org.greenrobot.greendao.annotation.Generated;
 
 /**
  * @className: JkChatMessage
@@ -9,6 +11,7 @@ import java.util.UUID;
  * @author: leibing
  * @createTime: 2017/2/17
  */
+@Entity
 public class JkChatMessage {
     // 消息类型----正常消息
     public final static String TYPE_MSG_NORMAL = "正常消息";
@@ -37,7 +40,8 @@ public class JkChatMessage {
     // 发送中
     public final static String STATUS_INPROGRESS = "STATUS_INPROGRESS";
     // 数据库自增id
-    private int id;
+    @Id(autoincrement = true)
+    private long id;
     // 消息id
     private String msgId;
     // 会话id
@@ -54,12 +58,12 @@ public class JkChatMessage {
     private String status;
     // 本地图片地址
     private String localUrl;
-    // 本地多张图片数组
-    private ArrayList localUrlsList;
+    // 本地多张图片数组Json数据
+    private String localUrlsJson;
     // 网络图片地址
     private String remoteUrl;
     // 多张图片网络地址
-    private ArrayList remoteUrls;
+    private String remoteUrlsJson;
     // 消息id
     private String tid;
     // 消息类型 "type":"正常消息" "type":"关闭客户连接"
@@ -74,6 +78,35 @@ public class JkChatMessage {
     private String staffName;
     // 是否对医生评价标识
     private String isHasAppraised;
+    @Generated(hash = 88097976)
+    public JkChatMessage(long id, String msgId, String cid, String msgType, String direct, long time,
+            String receiveDate, String status, String localUrl, String localUrlsJson, String remoteUrl,
+            String remoteUrlsJson, String tid, String type, String msg, String staffSessionID,
+            String customSessionID, String staffName, String isHasAppraised) {
+        this.id = id;
+        this.msgId = msgId;
+        this.cid = cid;
+        this.msgType = msgType;
+        this.direct = direct;
+        this.time = time;
+        this.receiveDate = receiveDate;
+        this.status = status;
+        this.localUrl = localUrl;
+        this.localUrlsJson = localUrlsJson;
+        this.remoteUrl = remoteUrl;
+        this.remoteUrlsJson = remoteUrlsJson;
+        this.tid = tid;
+        this.type = type;
+        this.msg = msg;
+        this.staffSessionID = staffSessionID;
+        this.customSessionID = customSessionID;
+        this.staffName = staffName;
+        this.isHasAppraised = isHasAppraised;
+    }
+
+    @Generated(hash = 1975531948)
+    public JkChatMessage() {
+    }
     /**-----------------------------------------获取不同消息---------------------------------------
      --------------------------------------------------------------------------------------------*/
     /**
@@ -164,11 +197,11 @@ public class JkChatMessage {
      * @author leibing
      * @createTime 2017/2/17
      * @lastModify 2017/2/17
-     * @param imgUrlsList 图片url列表
+     * @param imgUrlsJson 图片url列表Json
      * @param isLocal 是否本地图片列表
      * @return
      */
-    public static JkChatMessage newImageMessage(ArrayList imgUrlsList, boolean isLocal){
+    public static JkChatMessage newImageMessage(String imgUrlsJson, boolean isLocal){
         JkChatMessage result = new JkChatMessage();
         result.setDirect(JkChatMessage.DIRECT_SEND);
         result.setMsg("");
@@ -178,15 +211,15 @@ public class JkChatMessage {
         result.setStatus(JkChatMessage.STATUS_INPROGRESS);
         result.setMsgId(UUID.randomUUID().toString());
         if (isLocal)
-            result.setLocalUrlsList(imgUrlsList);
+            result.setLocalUrlsJson(imgUrlsJson);
         else
-            result.setRemoteUrls(imgUrlsList);
+            result.setRemoteUrlsJson(imgUrlsJson);
         return result;
     }
-
+    
     /**-----------------------------------------get and set---------------------------------------
      --------------------------------------------------------------------------------------------*/
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -258,12 +291,12 @@ public class JkChatMessage {
         this.localUrl = localUrl;
     }
 
-    public ArrayList getLocalUrlsList() {
-        return localUrlsList;
+    public String getLocalUrlsJson() {
+        return localUrlsJson;
     }
 
-    public void setLocalUrlsList(ArrayList localUrlsList) {
-        this.localUrlsList = localUrlsList;
+    public void setLocalUrlsJson(String localUrlsJson) {
+        this.localUrlsJson = localUrlsJson;
     }
 
     public String getRemoteUrl() {
@@ -274,12 +307,12 @@ public class JkChatMessage {
         this.remoteUrl = remoteUrl;
     }
 
-    public ArrayList getRemoteUrls() {
-        return remoteUrls;
+    public String getRemoteUrlsJson() {
+        return remoteUrlsJson;
     }
 
-    public void setRemoteUrls(ArrayList remoteUrls) {
-        this.remoteUrls = remoteUrls;
+    public void setRemoteUrlsJson(String remoteUrlsJson) {
+        this.remoteUrlsJson = remoteUrlsJson;
     }
 
     public String getTid() {
@@ -336,5 +369,9 @@ public class JkChatMessage {
 
     public void setIsHasAppraised(String isHasAppraised) {
         this.isHasAppraised = isHasAppraised;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

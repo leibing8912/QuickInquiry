@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'org.greenrobot.greendao'
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.2"
@@ -9,7 +9,6 @@ android {
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -29,4 +28,16 @@ dependencies {
     compile 'com.google.code.gson:gson:2.7'
     // websocket库
     compile project(':autobahn')
+    // greendao 依赖配置
+    compile 'org.greenrobot:greendao:3.2.0'
+    // greendao 升级配置
+    compile 'com.github.yuweiguocn:GreenDaoUpgradeHelper:v1.3.0'
+}
+
+greendao {
+    // 数据库schema版本，也可以理解为数据库版本号
+    schemaVersion 1
+    // 自动生成的文件所在目录
+    daoPackage 'com.jk.chat.gen'
+    targetGenDir 'src/main/java'
 }

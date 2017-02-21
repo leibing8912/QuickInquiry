@@ -1,13 +1,16 @@
 package cn.jianke.jkchat.domain;
 
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
 import java.util.UUID;
-
+import org.greenrobot.greendao.annotation.Generated;
 /**
  * @className: JkChatConversation
  * @classDescription: 健客聊天会话
  * @author: leibing
  * @createTime: 2017/2/17
  */
+@Entity
 public class JkChatConversation {
     // 状态--初始化
     public final static int STATUS_INIT = 0x0;
@@ -20,7 +23,8 @@ public class JkChatConversation {
     // 状态--空
     public final static int STATUS_NULL = 0x4;
     // 数据库自增id
-    private int id;
+    @Id(autoincrement = true)
+    private long id;
     // 会话id
     private String cid;
     // 消息id
@@ -33,6 +37,22 @@ public class JkChatConversation {
     private String accesstoken;
     // 是否登录
     private String isLogin;
+
+    @Generated(hash = 1120927762)
+    public JkChatConversation(long id, String cid, String tid, int status, long conversationCreateTime,
+            String accesstoken, String isLogin) {
+        this.id = id;
+        this.cid = cid;
+        this.tid = tid;
+        this.status = status;
+        this.conversationCreateTime = conversationCreateTime;
+        this.accesstoken = accesstoken;
+        this.isLogin = isLogin;
+    }
+
+    @Generated(hash = 940248480)
+    public JkChatConversation() {
+    }
 
     /**-----------------------------------------获取会话-----------------------------------------
      --------------------------------------------------------------------------------------------*/
@@ -54,7 +74,7 @@ public class JkChatConversation {
 
     /**-----------------------------------------get and set---------------------------------------
      --------------------------------------------------------------------------------------------*/
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -108,5 +128,9 @@ public class JkChatConversation {
 
     public void setIsLogin(String isLogin) {
         this.isLogin = isLogin;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }
