@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">JkChat</string>
+    <string name="chat_firstin_tips">请详细描述您的症状,不少于10个字,方便医生诊断病情。</string>
+    <string name="chat_few_keyword_doctor_online_tips">您好，当前医生在线，请详细描述您的症状,不少于10个字。</string>
+    <string name="chat_few_keyword_doctor_offline_tips">对不起，当前没有医生在线，请见谅！为方便您与医生及时沟通，请尽量在8:30am——21:00pm之间咨询！</string>
+    <string name="chat_few_word_tips">您好，为方便医生诊断，症状描述不能少于10个字。</string>
+    <string name="chat_filter_word_tips">对不起，您的提问包含敏感词汇，请重新优化输入关于疾病健康的问题。</string>
+    <string name="chat_limit_ask_tips">对不起，您已被限制提问！</string>
+    <!--<string name="chat_filter_waiting_doctor">正在转接专科医生为您解答，请耐心等待回复！</string>-->
+    <string name="chat_filter_waiting_doctor">您好，我们将尽快安排医生接诊，请您耐心等待，谢谢！在医生接诊前，您可以先看看可能的疾病</string>
+    <string name="chat_ending">您咨询的问题已结束，希望可以帮助到您，祝您健康！</string>
+    <string name="chat_doctor_lost_conn">对不起，该医生掉线，正在转接其他医生为您解答，请稍等</string>
+    <!--<string name="chat_doctor_answering">医生正在回答您的提问</string>-->
+    <string name="chat_doctor_answering_pre">您好，我是</string>
+    <string name="chat_doctor_answering">医生，很高兴为您服务</string>
+    <string name="chat_doctor_change_Wait">该医生无法回答您的问题，正在转接其他专科医生，请您耐心等待！</string>
+    <string name="chat_thx2doctor">很高兴为您解答，祝您健康！您本次对话已结束，欢迎下次咨询！</string>
+    <string name="chat_closed">此问题已经关闭</string>
+    <string name="chat_limit_ip">对不起，您已被限制提问！</string>
 </resources>
