@@ -5,11 +5,12 @@ import java.util.List;
 import cn.jianke.jkchat.domain.JkChatMessage;
 
 /**
- * @className: JkChatService
- * @classDescription: 健客聊天服务接口
+ * @interfaceName: JkChatService
+ * @interfaceDescription: 健客聊天服务接口
  * @author: leibing
- * @createTime: 2017/2/20
+ * @createTime: 2017/2/21
  */
+
 public interface JkChatService {
 
     /**

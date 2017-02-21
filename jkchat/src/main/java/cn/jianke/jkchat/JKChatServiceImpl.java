@@ -62,6 +62,8 @@ public class JKChatServiceImpl implements JkChatService{
     private int doctorNum = 0;
     // 是否禁止聊天
     private boolean isForbidAsk = false;
+    // 标识用户会话状态
+    private int askingFlag;
     // 健客聊天api监听
     private JkChatApiListener mJkChatApiListener = new JkChatApiListener() {
         @Override
@@ -388,6 +390,18 @@ public class JKChatServiceImpl implements JkChatService{
      */
     public void setDoctorNum(int doctorNum) {
         this.doctorNum = doctorNum;
+    }
+
+    /**
+     * 设置标识用户会话状态
+     * @author leibing
+     * @createTime 2017/2/21
+     * @lastModify 2017/2/21
+     * @param askingFlag 用户会话状态标识
+     * @return
+     */
+    public void setAskingFlag(int askingFlag) {
+        this.askingFlag = askingFlag;
     }
 
     /**

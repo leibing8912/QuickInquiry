@@ -3,11 +3,12 @@ package cn.jianke.jkchat;
 import cn.jianke.jkchat.domain.JkChatMessage;
 
 /**
- * @className: JkChatServiceListener
- * @classDescription: 健客聊天服务监听接口
+ * @interfaceName: JkChatServiceListener
+ * @interfaceDescription:健客聊天服务监听接口
  * @author: leibing
- * @createTime: 2017/2/20
+ * @createTime: 2017/2/21
  */
+
 public interface JkChatServiceListener {
 
     /**
