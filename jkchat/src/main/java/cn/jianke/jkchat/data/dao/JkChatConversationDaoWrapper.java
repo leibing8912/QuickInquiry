@@ -81,7 +81,7 @@ public class JkChatConversationDaoWrapper {
     }
 
     /**
-     * 获取数据库中最新一条会话消息中的状态
+     * 获取数据库最新一条会话消息中的状态
      * @author leibing
      * @createTime 2017/2/22
      * @lastModify 2017/2/22
@@ -95,5 +95,48 @@ public class JkChatConversationDaoWrapper {
         }
 
         return JkChatConversation.STATUS_NULL;
+    }
+
+    /**
+     * 设置数据库最新一条会话消息中的状态
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param status 会话状态
+     * @return
+     */
+    public void setLastConversationStatus(int status) {
+        try {
+            JkChatConversation mJkChatConversation = findLastConversation();
+            if (mJkChatConversation != null){
+                mJkChatConversation.setStatus(status);
+                if (mJkChatConversationDao != null){
+                    mJkChatConversationDao.update(mJkChatConversation);
+                }
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * 获取数据库最新一条会话消息中的是否登录标识
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param
+     * @return
+     */
+    public String getLastConversationIsLogin() {
+        String isLogin = null;
+        try {
+            JkChatConversation mJkChatConversation = findLastConversation();
+            if (mJkChatConversation != null){
+                isLogin = mJkChatConversation.getIsLogin();
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return isLogin;
     }
 }

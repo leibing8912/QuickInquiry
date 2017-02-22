@@ -3,7 +3,6 @@ package cn.jianke.jkchat.data.shareperferences;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import java.lang.ref.WeakReference;
 /**
  * @className: PatientShareperferences
  * @classDescription: 就诊人轻量储存数据
@@ -11,8 +10,8 @@ import java.lang.ref.WeakReference;
  * @createTime: 2017/2/21
  */
 public class PatientShareperferences {
-    // 就诊人
-    private final static String PATIENT_PREF = "patient";
+    // 就诊人Shareperferences文件名
+    private final static String PATIENT_PREF = "patient_pref";
     // 就诊人id
     private final static String PATIENT_ID = "patientId";
     // 就诊人名称
@@ -27,19 +26,16 @@ public class PatientShareperferences {
     private static PatientShareperferences instance;
 
     /**
-     * Construction
+     * Constructor
      * @author leibing
      * @createTime 2017/2/21
      * @lastModify 2017/2/21
-     * @param
+     * @param context 引用
      * @return
      */
     private PatientShareperferences(Context context){
-        WeakReference<Context> mContextWeakRef = new WeakReference<Context>(context);
-        if (mContextWeakRef != null && mContextWeakRef.get() != null){
-            mPatientSp = mContextWeakRef.get().getSharedPreferences(PATIENT_PREF,
+        mPatientSp = context.getSharedPreferences(PATIENT_PREF,
                     Activity.MODE_PRIVATE);
-        }
     }
 
     /**
@@ -47,7 +43,7 @@ public class PatientShareperferences {
      * @author leibing
      * @createTime 2017/2/21
      * @lastModify 2017/2/21
-     * @param
+     * @param context 引用（此处传入application引用防止内存泄漏）
      * @return
      */
     public static PatientShareperferences getInstance(Context context){

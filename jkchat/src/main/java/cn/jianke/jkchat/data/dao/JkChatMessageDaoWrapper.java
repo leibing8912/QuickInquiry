@@ -2,6 +2,9 @@ package cn.jianke.jkchat.data.dao;
 
 import android.content.Context;
 import com.jk.chat.gen.JkChatMessageDao;
+import org.greenrobot.greendao.query.QueryBuilder;
+import java.util.List;
+import cn.jianke.jkchat.domain.JkChatMessage;
 
 /**
  * @className: JkChatMessageDaoWrapper
@@ -46,5 +49,36 @@ public class JkChatMessageDaoWrapper {
             }
         }
         return instance;
+    }
+
+    /**
+     * 获取数据库中最新一条发送方向的聊天消息(按时间降序)
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param
+     * @return 会话信息
+     */
+    public JkChatMessage findLastMessage(){
+        JkChatMessage result = null;
+        if (mJkChatMessageDao != null) {
+            QueryBuilder jkMsgQb = mJkChatMessageDao.queryBuilder();
+            List<JkChatMessage> mJkChatMessageList  =
+                    // 查询条件为消息方向----发送
+                    jkMsgQb.where(JkChatMessageDao.Properties.Direct
+                            .eq(JkChatMessage.DIRECT_SEND))
+                            // 按时间降序排序
+                            .orderDesc(JkChatMessageDao.Properties.Time)
+                            // 只查询一条数据
+                            .limit(1)
+                            // 返回查询结果
+                            .list();
+            if (mJkChatMessageList != null
+                    && mJkChatMessageList.size() == 1) {
+                // 获取数据库中最新聊天会话数据
+                result = mJkChatMessageList.get(0);
+            }
+        }
+        return result;
     }
 }

@@ -5,14 +5,16 @@ import android.text.TextUtils;
 import com.jk.chat.gen.JkChatConversationDao;
 import com.jk.chat.gen.JkChatMessageDao;
 import com.jk.chat.gen.JkChatSessionDao;
-import org.greenrobot.greendao.query.QueryBuilder;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import cn.jianke.jkchat.common.RequestUrlUtils;
 import cn.jianke.jkchat.common.StringUtils;
+import cn.jianke.jkchat.data.dao.JkChatConversationDaoWrapper;
 import cn.jianke.jkchat.data.dao.JkChatDaoManager;
+import cn.jianke.jkchat.data.dao.JkChatMessageDaoWrapper;
+import cn.jianke.jkchat.data.shareperferences.LoginShareperferences;
 import cn.jianke.jkchat.data.shareperferences.PatientShareperferences;
 import cn.jianke.jkchat.domain.JkChatConversation;
 import cn.jianke.jkchat.domain.JkChatMessage;
@@ -219,50 +221,27 @@ public class JKChatServiceImpl implements JkChatService{
                         R.string.chat_few_keyword_doctor_offline_tips));
             }else {
                 // 有医生在线，第一条消息发送到服务器有响应，表明发送成功，即将发送的消息的CustomSessionID设置为当前的
-                if (mJkChatMessageDao != null){
-                    QueryBuilder jkMsgQb = mJkChatMessageDao.queryBuilder();
-                    List<JkChatMessage> mJkChatMessageList  =
-                            // 查询条件为消息方向----发送
-                            jkMsgQb.where(JkChatMessageDao.Properties.Direct
-                                    .eq(JkChatMessage.DIRECT_SEND))
-                                    // 按时间降序排序
-                                    .orderDesc(JkChatMessageDao.Properties.Time)
-                                    // 只查询一条数据
-                                    .limit(1)
-                                    // 返回查询结果
-                                    .list();
-                    if (mJkChatMessageList != null && mJkChatMessageList.size() == 1){
-                        // 获取数据库中最新聊天信息
-                        JkChatMessage tmpJkChatMessage = mJkChatMessageList.get(0);
-                        if (mJkChatConversationDao != null) {
-                            QueryBuilder jkCtQb = mJkChatConversationDao.queryBuilder();
-                            List<JkChatConversation> mJkChatConversationList =
-                                    // 按时间降序排序
-                                    jkCtQb.orderDesc(JkChatConversationDao
-                                            .Properties.ConversationCreateTime)
-                                            // 只查询一条数据
-                                            .limit(1)
-                                            // 返回查询结果
-                                            .list();
-                            if (mJkChatConversationList != null
-                                    && mJkChatConversationList.size() == 1) {
-                                // 获取数据库中最新聊天会话数据
-                                JkChatConversation tmpJkChatConversation
-                                        = mJkChatConversationList.get(0);
-                                // 设置CustomSessionID
-                                tmpJkChatMessage.
-                                        setCustomSessionID(tmpJkChatConversation.getAccesstoken());
-                                // 更新数据库
-                                mJkChatMessageDao.update(tmpJkChatMessage);
-                            }
-                        }
-                    }
+                // 获取数据库中最新发送方向的聊天信息
+                JkChatMessage tmpJkChatMessage = JkChatMessageDaoWrapper
+                        .getInstance(mContextWeakRef.get()
+                                .getApplicationContext()).findLastMessage();
+                if (tmpJkChatMessage != null) {
+                    // 获取数据库中最新聊天会话数据
+                    JkChatConversation tmpJkChatConversation = JkChatConversationDaoWrapper
+                            .getInstance(mContextWeakRef.get().getApplicationContext())
+                            .findLastConversation();
+                    // 设置CustomSessionID
+                    tmpJkChatMessage.setCustomSessionID(tmpJkChatConversation.getAccesstoken());
+                    // 更新数据库
+                    mJkChatMessageDao.update(tmpJkChatMessage);
                 }
             }
         }
 
         @Override
         public void onSessionChanged(JkChatSession session) {
+            // 如果数据库有会话记录，返回该会话 没有则创建新的会话
+            createConversation();
             // 设置聊天连接状态为已经连接上
             connectStatus = CONNECTED;
             // 若session为空则返回
@@ -808,6 +787,44 @@ public class JKChatServiceImpl implements JkChatService{
         if (jkCurrentConversation != null)
             message.setTid(jkCurrentConversation.getTid());
         return mJkChatConnection.sendMessage(message);
+    }
+
+    /**
+     * 如果数据库有会话记录，返回该会话 没有则创建新的会话
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param
+     * @return
+     */
+    private void createConversation() {
+        // 若页面实例引用为空则返回
+        if (mContextWeakRef == null || mContextWeakRef.get() == null)
+            return;
+        // 判断是否切换了登陆状态
+        boolean getIsUserLogin = LoginShareperferences
+                .getInstance(mContextWeakRef.get()
+                        .getApplicationContext()).getIsUserLogin();
+        // 获取数据库最新一条会话消息中的是否登录标识
+        String isLogin = JkChatConversationDaoWrapper
+                .getInstance(mContextWeakRef.get().getApplicationContext())
+                .getLastConversationIsLogin();
+        // 获取数据库最新一条会话消息中的状态
+        int status = JkChatConversationDaoWrapper
+                .getInstance(mContextWeakRef.get().getApplicationContext())
+                .getLastConversationStatus();
+        // 若满足登录状态一致，消息状态不为空或者已结束则拿取数据库最后一条会话作为当前会话
+        if (isLogin != null && status != JkChatConversation.STATUS_NULL
+                && Boolean.parseBoolean(isLogin) == getIsUserLogin
+                && status != JkChatConversation.STATUS_FINISHED) {
+            jkCurrentConversation = JkChatConversationDaoWrapper
+                    .getInstance(mContextWeakRef.get().getApplicationContext())
+                    .findLastConversation();
+        }
+        // 若当前会话为空则创建新会话
+        if (jkCurrentConversation == null) {
+            jkCurrentConversation = JkChatConversation.newConversation();
+        }
     }
 
     /**
