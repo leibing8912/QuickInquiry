@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import com.jk.chat.gen.JkChatConversationDao;
 import com.jk.chat.gen.JkChatMessageDao;
 import com.jk.chat.gen.JkChatSessionDao;
+import org.greenrobot.greendao.query.QueryBuilder;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -216,6 +217,47 @@ public class JKChatServiceImpl implements JkChatService{
                 // 发送系统消息
                 sendSystemText(mContextWeakRef.get().getResources().getString(
                         R.string.chat_few_keyword_doctor_offline_tips));
+            }else {
+                // 有医生在线，第一条消息发送到服务器有响应，表明发送成功，即将发送的消息的CustomSessionID设置为当前的
+                if (mJkChatMessageDao != null){
+                    QueryBuilder jkMsgQb = mJkChatMessageDao.queryBuilder();
+                    List<JkChatMessage> mJkChatMessageList  =
+                            // 查询条件为消息方向----发送
+                            jkMsgQb.where(JkChatMessageDao.Properties.Direct
+                                    .eq(JkChatMessage.DIRECT_SEND))
+                                    // 按时间降序排序
+                                    .orderDesc(JkChatMessageDao.Properties.Time)
+                                    // 只查询一条数据
+                                    .limit(1)
+                                    // 返回查询结果
+                                    .list();
+                    if (mJkChatMessageList != null && mJkChatMessageList.size() == 1){
+                        // 获取数据库中最新聊天信息
+                        JkChatMessage tmpJkChatMessage = mJkChatMessageList.get(0);
+                        if (mJkChatConversationDao != null) {
+                            QueryBuilder jkCtQb = mJkChatConversationDao.queryBuilder();
+                            List<JkChatConversation> mJkChatConversationList =
+                                    // 按时间降序排序
+                                    jkCtQb.orderDesc(JkChatConversationDao
+                                            .Properties.ConversationCreateTime)
+                                            // 只查询一条数据
+                                            .limit(1)
+                                            // 返回查询结果
+                                            .list();
+                            if (mJkChatConversationList != null
+                                    && mJkChatConversationList.size() == 1) {
+                                // 获取数据库中最新聊天会话数据
+                                JkChatConversation tmpJkChatConversation
+                                        = mJkChatConversationList.get(0);
+                                // 设置CustomSessionID
+                                tmpJkChatMessage.
+                                        setCustomSessionID(tmpJkChatConversation.getAccesstoken());
+                                // 更新数据库
+                                mJkChatMessageDao.update(tmpJkChatMessage);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -369,7 +411,7 @@ public class JKChatServiceImpl implements JkChatService{
         mJkChatSessionDao = JkChatDaoManager.getInstance(
                 context.getApplicationContext()).getDaoSession().getJkChatSessionDao();
     }
-    
+
     /**
      * sington
      * @author leibing
