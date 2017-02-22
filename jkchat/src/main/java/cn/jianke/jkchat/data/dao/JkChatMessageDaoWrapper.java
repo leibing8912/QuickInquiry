@@ -81,4 +81,35 @@ public class JkChatMessageDaoWrapper {
         }
         return result;
     }
+
+    /**
+     * 根据会话id更改消息id
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param cid 会话id
+     * @param tid 消息id
+     * @return
+     */
+    public void modifyTidByCid(String cid, String tid){
+        if (mJkChatMessageDao != null){
+            QueryBuilder jkMsgQb = mJkChatMessageDao.queryBuilder();
+            List<JkChatMessage> mJkChatMessageList  =
+                    // 查询条件为cid
+                    jkMsgQb.where(JkChatMessageDao.Properties.Cid
+                            .eq(cid))
+                            // 按时间降序排序
+                            .orderDesc(JkChatMessageDao.Properties.Time)
+                            // 返回查询结果
+                            .list();
+            if (mJkChatMessageList != null
+                    && mJkChatMessageList.size() != 0) {
+                // 遍历数据并更新数据
+                for (JkChatMessage mJkChatMessage: mJkChatMessageList){
+                    mJkChatMessage.setTid(tid);
+                    mJkChatMessageDao.update(mJkChatMessage);
+                }
+            }
+        }
+    }
 }

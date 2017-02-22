@@ -240,16 +240,28 @@ public class JKChatServiceImpl implements JkChatService{
 
         @Override
         public void onSessionChanged(JkChatSession session) {
-            // 如果数据库有会话记录，返回该会话 没有则创建新的会话
-            createConversation();
-            // 设置聊天连接状态为已经连接上
-            connectStatus = CONNECTED;
             // 若session为空则返回
             if (session == null)
                 return;
             // 若页面实例引用为空则返回
             if (mContextWeakRef == null || mContextWeakRef.get() == null)
                 return;
+            // 如果数据库有会话记录，返回该会话 没有则创建新的会话
+            createConversation();
+            // 将这个对话所有记录的tid都改成新的tid
+            jkCurrentConversation.setTid(session.getTid());
+            // 根据本次会话的cid将新的tid修改到本次的conversation记录中
+            // 健客聊天消息更新
+            JkChatMessageDaoWrapper.getInstance(mContextWeakRef.get()
+                    .getApplicationContext())
+                    .modifyTidByCid(jkCurrentConversation.getCid(), session.getTid());
+            // 健客聊天会话信息更新
+            JkChatConversationDaoWrapper.getInstance(mContextWeakRef.get().getApplicationContext())
+                    .updataTidByCid(jkCurrentConversation.getCid(),
+                            session.getTid(), jkCurrentConversation.getStatus(),
+                            jkCurrentConversation.getConversationCreateTime());
+            // 设置聊天连接状态为已经连接上
+            connectStatus = CONNECTED;
             // 有医生接受通话时发送的系统消息
             sendSystemText(mContextWeakRef.get().getResources().getString(
                     R.string.chat_doctor_answering_pre)

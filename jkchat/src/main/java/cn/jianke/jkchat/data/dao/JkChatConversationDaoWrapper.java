@@ -139,4 +139,46 @@ public class JkChatConversationDaoWrapper {
         }
         return isLogin;
     }
+
+    /**
+     * 在数据库中根据cid更新tid，如果没有该记录时则创建
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param cid 会话id
+     * @param tid 消息id
+     * @param status 状态
+     * @param createdTime 会话创建时间
+     * @return
+     */
+    public void updataTidByCid(String cid, String tid, int status, long createdTime) {
+        if (mJkChatConversationDao != null){
+            QueryBuilder jkCtQb = mJkChatConversationDao.queryBuilder();
+            List<JkChatConversation> mJkChatConversationList =
+                    // 条件查询cid
+                    jkCtQb.where(JkChatConversationDao.Properties.Cid.eq(cid))
+                            // 返回查询结果
+                            .list();
+            if (mJkChatConversationList != null
+                    && mJkChatConversationList.size() != 0) {
+                // 更新会话
+                for (JkChatConversation mJkChatConversation : mJkChatConversationList){
+                    mJkChatConversation.setTid(tid);
+                    mJkChatConversation.setStatus(status);
+                    mJkChatConversation.setConversationCreateTime(createdTime);
+                    // 更新数据
+                    mJkChatConversationDao.update(mJkChatConversation);
+                }
+            }else {
+                // 创建会话
+                JkChatConversation newJkChatConversation = new JkChatConversation();
+                newJkChatConversation.setCid(cid);
+                newJkChatConversation.setTid(tid);
+                newJkChatConversation.setStatus(status);
+                newJkChatConversation.setConversationCreateTime(createdTime);
+                // 插入数据
+                mJkChatConversationDao.insert(newJkChatConversation);
+            }
+        }
+    }
 }
