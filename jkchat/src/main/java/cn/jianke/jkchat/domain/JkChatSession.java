@@ -5,7 +5,7 @@ import org.greenrobot.greendao.annotation.Generated;
 
 /**
  * @className: JkChatSession
- * @classDescription: 健客聊天会话消息体（服务器发送过来的会话信息）
+ * @classDescription: 健客聊天会话消息（服务器发送过来的会话信息）
  * @author: leibing
  * @createTime: 2017/2/17
  */

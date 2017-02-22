@@ -2,12 +2,16 @@ package cn.jianke.jkchat;
 
 import android.content.Context;
 import android.text.TextUtils;
+import com.jk.chat.gen.JkChatConversationDao;
+import com.jk.chat.gen.JkChatMessageDao;
+import com.jk.chat.gen.JkChatSessionDao;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import cn.jianke.jkchat.common.RequestUrlUtils;
 import cn.jianke.jkchat.common.StringUtils;
+import cn.jianke.jkchat.data.dao.JkChatDaoManager;
 import cn.jianke.jkchat.data.shareperferences.PatientShareperferences;
 import cn.jianke.jkchat.domain.JkChatConversation;
 import cn.jianke.jkchat.domain.JkChatMessage;
@@ -83,6 +87,12 @@ public class JKChatServiceImpl implements JkChatService{
     // 是否完成首次打开fragment时，对服务器的请求 保证请求完服务器信息才允许发送信息
     // 因为考虑到网速慢，导致发送消息的时候，第一次请求还没响应，破坏了期望的连接状态
     private boolean isFinishedFirstRequest = false;
+    // 健客聊天会话Dao
+    private JkChatConversationDao mJkChatConversationDao;
+    // 健客聊天消息Dao
+    private JkChatMessageDao mJkChatMessageDao;
+    // 健客聊天会话消息Dao
+    private JkChatSessionDao mJkChatSessionDao;
     // 健客聊天api监听
     private JkChatApiListener mJkChatApiListener = new JkChatApiListener() {
         @Override
@@ -336,6 +346,9 @@ public class JKChatServiceImpl implements JkChatService{
      * @return
      */
     public JKChatServiceImpl(Context context, String userId){
+        if (context == null){
+            throw new NullPointerException("context is null!");
+        }
         // init context weak ref
         mContextWeakRef = new WeakReference<Context>(context);
         // init jk chat api
@@ -346,8 +359,17 @@ public class JKChatServiceImpl implements JkChatService{
         mJkChatConnection = new JkChatConnectionImpl();
         // set jk chat connection listener
         mJkChatConnection.setListener(mJkChatConnectionListener);
+        // init jk chat conversation dao
+        mJkChatConversationDao = JkChatDaoManager.getInstance(
+                context.getApplicationContext()).getDaoSession().getJkChatConversationDao();
+        // init jk chat message dao
+        mJkChatMessageDao = JkChatDaoManager.getInstance(
+                context.getApplicationContext()).getDaoSession().getJkChatMessageDao();
+        // init jk chat session dao
+        mJkChatSessionDao = JkChatDaoManager.getInstance(
+                context.getApplicationContext()).getDaoSession().getJkChatSessionDao();
     }
-
+    
     /**
      * sington
      * @author leibing
