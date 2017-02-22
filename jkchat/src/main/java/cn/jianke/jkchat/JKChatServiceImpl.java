@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import com.jk.chat.gen.JkChatConversationDao;
 import com.jk.chat.gen.JkChatMessageDao;
 import com.jk.chat.gen.JkChatSessionDao;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,8 +13,7 @@ import cn.jianke.jkchat.common.StringUtils;
 import cn.jianke.jkchat.data.dao.JkChatConversationDaoWrapper;
 import cn.jianke.jkchat.data.dao.JkChatDaoManager;
 import cn.jianke.jkchat.data.dao.JkChatMessageDaoWrapper;
-import cn.jianke.jkchat.data.shareperferences.LoginShareperferences;
-import cn.jianke.jkchat.data.shareperferences.PatientShareperferences;
+import cn.jianke.jkchat.data.shareperferences.JkChatSharePerferences;
 import cn.jianke.jkchat.domain.JkChatConversation;
 import cn.jianke.jkchat.domain.JkChatMessage;
 import cn.jianke.jkchat.domain.JkChatSession;
@@ -55,8 +53,6 @@ public class JKChatServiceImpl implements JkChatService{
             "谢谢您", "非常感谢", "下次还找你"};
     // 连接状态
     private String connectStatus = INIT;
-    // Context weak Ref
-    private WeakReference<Context> mContextWeakRef;
     // 健客聊天服务实现单例
     private static JKChatServiceImpl instance;
     // 健客聊天api
@@ -96,25 +92,28 @@ public class JKChatServiceImpl implements JkChatService{
     private JkChatMessageDao mJkChatMessageDao;
     // 健客聊天会话消息Dao
     private JkChatSessionDao mJkChatSessionDao;
+    // 应用实例引用
+    private Context mApplicationContext;
     // 健客聊天api监听
     private JkChatApiListener mJkChatApiListener = new JkChatApiListener() {
         @Override
         public void onReponseGetDoctorNum(int doctorNum) {
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
+                return;
             // 设置在线医生数目
             setDoctorNum(doctorNum);
             // 1、医生在线时给予系统提示： 您好，当前医生在线，请详细描述您的症状,不少于10个字。
             // 2、没有医生在线时给予系统提示：对不起，当前没有医生在线，请见谅！为方便您与医生及时沟通，请尽量在8:30am——21:00pm之间咨询！
             // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
-                return;
             // 发送系统消息
             if (doctorNum > 0){
                 // 有医生在线
-                sendSystemText(mContextWeakRef.get().getResources().getString(
+                sendSystemText(mApplicationContext.getResources().getString(
                         R.string.chat_few_keyword_doctor_online_tips));
             }else {
                 // 没有医生在线
-                sendSystemText(mContextWeakRef.get().getResources().getString(
+                sendSystemText(mApplicationContext.getResources().getString(
                         R.string.chat_few_keyword_doctor_offline_tips));
             }
         }
@@ -208,27 +207,26 @@ public class JKChatServiceImpl implements JkChatService{
         @Override
         public void onStuffNumChanged(int number) {
             // 再次判断医生在线数目
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
+                return;
             // 设置医生在线数目
             setDoctorNum(number);
             // 设置聊天连接状态为正在连接中
             connectStatus = CONNECTING;
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
-                return;
             if (number < 1){
                 // 发送系统消息
-                sendSystemText(mContextWeakRef.get().getResources().getString(
+                sendSystemText(mApplicationContext.getResources().getString(
                         R.string.chat_few_keyword_doctor_offline_tips));
             }else {
                 // 有医生在线，第一条消息发送到服务器有响应，表明发送成功，即将发送的消息的CustomSessionID设置为当前的
                 // 获取数据库中最新发送方向的聊天信息
                 JkChatMessage tmpJkChatMessage = JkChatMessageDaoWrapper
-                        .getInstance(mContextWeakRef.get()
-                                .getApplicationContext()).findLastMessage();
+                        .getInstance(mApplicationContext.getApplicationContext()).findLastMessage();
                 if (tmpJkChatMessage != null) {
                     // 获取数据库中最新聊天会话数据
                     JkChatConversation tmpJkChatConversation = JkChatConversationDaoWrapper
-                            .getInstance(mContextWeakRef.get().getApplicationContext())
+                            .getInstance(mApplicationContext.getApplicationContext())
                             .findLastConversation();
                     // 设置CustomSessionID
                     tmpJkChatMessage.setCustomSessionID(tmpJkChatConversation.getAccesstoken());
@@ -240,11 +238,11 @@ public class JKChatServiceImpl implements JkChatService{
 
         @Override
         public void onSessionChanged(JkChatSession session) {
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
+                return;
             // 若session为空则返回
             if (session == null)
-                return;
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
                 return;
             // 如果数据库有会话记录，返回该会话 没有则创建新的会话
             createConversation();
@@ -252,21 +250,20 @@ public class JKChatServiceImpl implements JkChatService{
             jkCurrentConversation.setTid(session.getTid());
             // 根据本次会话的cid将新的tid修改到本次的conversation记录中
             // 健客聊天消息更新
-            JkChatMessageDaoWrapper.getInstance(mContextWeakRef.get()
-                    .getApplicationContext())
+            JkChatMessageDaoWrapper.getInstance(mApplicationContext.getApplicationContext())
                     .modifyTidByCid(jkCurrentConversation.getCid(), session.getTid());
             // 健客聊天会话信息更新
-            JkChatConversationDaoWrapper.getInstance(mContextWeakRef.get().getApplicationContext())
+            JkChatConversationDaoWrapper.getInstance(mApplicationContext.getApplicationContext())
                     .updataTidByCid(jkCurrentConversation.getCid(),
                             session.getTid(), jkCurrentConversation.getStatus(),
                             jkCurrentConversation.getConversationCreateTime());
             // 设置聊天连接状态为已经连接上
             connectStatus = CONNECTED;
             // 有医生接受通话时发送的系统消息
-            sendSystemText(mContextWeakRef.get().getResources().getString(
+            sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_doctor_answering_pre)
                     + session.getStaffName()
-                    + mContextWeakRef.get().getResources().getString(
+                    + mApplicationContext.getResources().getString(
                     R.string.chat_doctor_answering));
             // 客服名称、接收消息回调
             if (mJkChatServiceListener != null){
@@ -296,11 +293,13 @@ public class JKChatServiceImpl implements JkChatService{
 
         @Override
         public void onClientClosed() {
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
                 return;
+            // 会话结束，将会话状态保存到本地
+            JkChatSharePerferences.getInstance(mApplicationContext.getApplicationContext()).saveConversationStatus(true);
             // 发送系统消息
-            sendSystemText(mContextWeakRef.get().getResources().getString(
+            sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_ending));
             // 医生客户端关闭时回调或是客户主动关闭在线咨询时回调
             if (mOnClientClosedListener != null)
@@ -309,11 +308,11 @@ public class JKChatServiceImpl implements JkChatService{
 
         @Override
         public void onStuffOffline() {
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
                 return;
             // 发送系统消息
-            sendSystemText(mContextWeakRef.get().getResources().getString(
+            sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_doctor_lost_conn));
         }
 
@@ -322,24 +321,36 @@ public class JKChatServiceImpl implements JkChatService{
             // 医生把提问者放到等待应答列表，则上一次的tid作废，
             // 到了再次有医生应答时，即回调onSessionChanged时，会将之前tid为空的消息记录当作是本次会话的记录
             // 转换多个医生也是如此
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
                 return;
+            if (jkCurrentConversation != null)
+                JkChatMessageDaoWrapper.getInstance(mApplicationContext.getApplicationContext())
+                        .removeTidByCid(jkCurrentConversation.getCid());
             // 发送系统消息
-            sendSystemText(mContextWeakRef.get().getResources().getString(
+            sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_doctor_change_Wait));
         }
 
         @Override
         public void onChatClosed() {
+            // 上一个会话结束了，不关闭socket，让下一个会话继续
+            jkCurrentConversation = JkChatConversation.newConversation();
             // 设置连接状态为正在连接中
             connectStatus = CONNECTING;
         }
 
         @Override
         public void onChatStillAlive() {
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
+                return;
             // 设置连接状态为已经连接上
             connectStatus = CONNECTED;
+            // 设置数据库中最新会话为当前会话
+            jkCurrentConversation = JkChatConversationDaoWrapper
+                    .getInstance(mApplicationContext.getApplicationContext())
+                    .findLastConversation();
         }
 
         @Override
@@ -350,23 +361,23 @@ public class JKChatServiceImpl implements JkChatService{
 
         @Override
         public void onFilterAskQuestion() {
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
                 return;
             // 发送系统消息
-            sendSystemText(mContextWeakRef.get().getResources().getString(
+            sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_filter_word_tips));
         }
 
         @Override
         public void onForbidAskQuestion() {
+            // 若应用实例为空则返回
+            if (mApplicationContext == null)
+                return;
             // 设置禁止聊天
             isForbidAsk = true;
-            // 若页面实例引用为空则返回
-            if (mContextWeakRef == null || mContextWeakRef.get() == null)
-                return;
             // 发送系统消息
-            sendSystemText(mContextWeakRef.get().getResources().getString(
+            sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_limit_ip));
         }
     };
@@ -384,8 +395,8 @@ public class JKChatServiceImpl implements JkChatService{
         if (context == null){
             throw new NullPointerException("context is null!");
         }
-        // init context weak ref
-        mContextWeakRef = new WeakReference<Context>(context);
+        // init application context
+        mApplicationContext = context.getApplicationContext();
         // init jk chat api
         mJkChatApi = new JkChatApiImpl(userId);
         // set jk chat api listener
@@ -435,17 +446,17 @@ public class JKChatServiceImpl implements JkChatService{
      */
     private void jkConnection(){
         if (mJkChatConnection != null
-                && mContextWeakRef != null
+                && mApplicationContext != null
                 && mJkChatConfig != null
                 && !mJkChatConnection.isConnected()){
-            String fileId = PatientShareperferences.getInstance(
-                    mContextWeakRef.get()).getPatientId();
-            String name = PatientShareperferences.getInstance(
-                    mContextWeakRef.get()).getPatientName();
-            String sex = PatientShareperferences.getInstance(
-                    mContextWeakRef.get()).getPatientSex();
-            String age = PatientShareperferences.getInstance(
-                    mContextWeakRef.get()).getPatientAge();
+            String fileId = JkChatSharePerferences.getInstance(
+                    mApplicationContext).getPatientId();
+            String name = JkChatSharePerferences.getInstance(
+                    mApplicationContext).getPatientName();
+            String sex = JkChatSharePerferences.getInstance(
+                    mApplicationContext).getPatientSex();
+            String age = JkChatSharePerferences.getInstance(
+                    mApplicationContext).getPatientAge();
             // 若聊天连接参数有一个为空则返回
             if (StringUtils.isEmpty(fileId)
                     || StringUtils.isEmpty(name)
@@ -472,8 +483,14 @@ public class JKChatServiceImpl implements JkChatService{
 
     @Override
     public void start() {
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
+            return;
         if (!isChatRunning){
             isChatRunning = true;
+            // 将会话状态保存到本地
+            JkChatSharePerferences.getInstance(mApplicationContext.getApplicationContext())
+                    .saveConversationStatus(false);
             // 连接健客聊天服务器
             jkConnection();
         }
@@ -624,12 +641,12 @@ public class JKChatServiceImpl implements JkChatService{
      * @return
      */
     public void sendSystemText(String content) {
-        // 若页面实例引用为空则返回
-        if (mContextWeakRef == null || mContextWeakRef.get() == null)
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
             return;
         if (!isForbidAsk
                 && StringUtils.isNotEmpty(content)
-                && !mContextWeakRef.get().getResources().getString(R.string.chat_limit_ip)
+                && !mApplicationContext.getResources().getString(R.string.chat_limit_ip)
                 .equals(content)) {
                 // 未被禁止且不是“对不起，你已被限制提问”的时候才发送系统消息
                 // 组建系统聊天消息
@@ -640,8 +657,8 @@ public class JKChatServiceImpl implements JkChatService{
                 }
         }else {
             // 组建系统聊天消息
-            JkChatMessage msg = JkChatMessage.newSystemMessage(mContextWeakRef.get()
-                    .getResources().getString(R.string.chat_limit_ip));
+            JkChatMessage msg = JkChatMessage.newSystemMessage(mApplicationContext.getResources()
+                    .getString(R.string.chat_limit_ip));
             // 回调接收消息
             if (mJkChatServiceListener != null)
                 mJkChatServiceListener.onReceivedMessage(msg);
@@ -671,8 +688,8 @@ public class JKChatServiceImpl implements JkChatService{
                         if (mJkChatServiceListener != null) {
                             mJkChatServiceListener.onReceivedMessage(message);
                             // 若页面实例引用为空则返回
-                            if (mContextWeakRef != null && mContextWeakRef.get() != null) {
-                                sendSystemText(mContextWeakRef.get().getResources().getString(
+                            if (mApplicationContext != null) {
+                                sendSystemText(mApplicationContext.getResources().getString(
                                         R.string.chat_thx2doctor));
                             }
                             // 相当于主动结束对话
@@ -812,27 +829,26 @@ public class JKChatServiceImpl implements JkChatService{
      * @return
      */
     private void createConversation() {
-        // 若页面实例引用为空则返回
-        if (mContextWeakRef == null || mContextWeakRef.get() == null)
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
             return;
         // 判断是否切换了登陆状态
-        boolean getIsUserLogin = LoginShareperferences
-                .getInstance(mContextWeakRef.get()
-                        .getApplicationContext()).getIsUserLogin();
+        boolean getIsUserLogin = JkChatSharePerferences
+                .getInstance(mApplicationContext.getApplicationContext()).getIsUserLogin();
         // 获取数据库最新一条会话消息中的是否登录标识
         String isLogin = JkChatConversationDaoWrapper
-                .getInstance(mContextWeakRef.get().getApplicationContext())
+                .getInstance(mApplicationContext.getApplicationContext())
                 .getLastConversationIsLogin();
         // 获取数据库最新一条会话消息中的状态
         int status = JkChatConversationDaoWrapper
-                .getInstance(mContextWeakRef.get().getApplicationContext())
+                .getInstance(mApplicationContext.getApplicationContext())
                 .getLastConversationStatus();
         // 若满足登录状态一致，消息状态不为空或者已结束则拿取数据库最后一条会话作为当前会话
         if (isLogin != null && status != JkChatConversation.STATUS_NULL
                 && Boolean.parseBoolean(isLogin) == getIsUserLogin
                 && status != JkChatConversation.STATUS_FINISHED) {
             jkCurrentConversation = JkChatConversationDaoWrapper
-                    .getInstance(mContextWeakRef.get().getApplicationContext())
+                    .getInstance(mApplicationContext.getApplicationContext())
                     .findLastConversation();
         }
         // 若当前会话为空则创建新会话
@@ -850,8 +866,8 @@ public class JKChatServiceImpl implements JkChatService{
      * @return
      */
     public void saveMessage(JkChatMessage message) {
-        // 若页面实例引用为空则返回
-        if (mContextWeakRef == null || mContextWeakRef.get() == null)
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
             return;
         // 消息为空则返回
         if (message == null)
@@ -866,7 +882,7 @@ public class JKChatServiceImpl implements JkChatService{
             }
             // 将全部接收到消息的cid设置为当前对话的cid
             JkChatConversation lastJkChatConversation = JkChatConversationDaoWrapper
-                    .getInstance(mContextWeakRef.get().getApplicationContext())
+                    .getInstance(mApplicationContext.getApplicationContext())
                     .findLastConversation();
             if (message.getDirect().equals(JkChatMessage.DIRECT_RECEIVE)
                     && message.getCustomSessionID() != null
