@@ -5,6 +5,7 @@ import com.jk.chat.gen.JkChatConversationDao;
 import org.greenrobot.greendao.query.QueryBuilder;
 import java.util.List;
 import cn.jianke.jkchat.domain.JkChatConversation;
+import cn.jianke.jkchat.domain.JkChatMessage;
 
 /**
  * @className: JkChatConversationDaoWrapper
@@ -179,6 +180,34 @@ public class JkChatConversationDaoWrapper {
                 // 插入数据
                 mJkChatConversationDao.insert(newJkChatConversation);
             }
+        }
+    }
+
+    /**
+     * 保存会话消息
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param mJkChatConversation 健客聊天会话信息
+     * @return
+     */
+    public void saveConversation(JkChatConversation mJkChatConversation){
+        if (mJkChatConversationDao != null){
+            mJkChatConversationDao.insert(mJkChatConversation);
+        }
+    }
+
+    /**
+     * 更新会话消息
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param mJkChatConversation 健客聊天会话信息
+     * @return
+     */
+    public void updateConversation(JkChatConversation mJkChatConversation){
+        if (mJkChatConversationDao != null){
+            mJkChatConversationDao.update(mJkChatConversation);
         }
     }
 }

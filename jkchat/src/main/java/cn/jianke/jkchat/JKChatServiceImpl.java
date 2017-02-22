@@ -2,16 +2,12 @@ package cn.jianke.jkchat;
 
 import android.content.Context;
 import android.text.TextUtils;
-import com.jk.chat.gen.JkChatConversationDao;
-import com.jk.chat.gen.JkChatMessageDao;
-import com.jk.chat.gen.JkChatSessionDao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import cn.jianke.jkchat.common.RequestUrlUtils;
 import cn.jianke.jkchat.common.StringUtils;
 import cn.jianke.jkchat.data.dao.JkChatConversationDaoWrapper;
-import cn.jianke.jkchat.data.dao.JkChatDaoManager;
 import cn.jianke.jkchat.data.dao.JkChatMessageDaoWrapper;
 import cn.jianke.jkchat.data.shareperferences.JkChatSharePerferences;
 import cn.jianke.jkchat.domain.JkChatConversation;
@@ -86,12 +82,6 @@ public class JKChatServiceImpl implements JkChatService{
     // 是否完成首次打开fragment时，对服务器的请求 保证请求完服务器信息才允许发送信息
     // 因为考虑到网速慢，导致发送消息的时候，第一次请求还没响应，破坏了期望的连接状态
     private boolean isFinishedFirstRequest = false;
-    // 健客聊天会话Dao
-    private JkChatConversationDao mJkChatConversationDao;
-    // 健客聊天消息Dao
-    private JkChatMessageDao mJkChatMessageDao;
-    // 健客聊天会话消息Dao
-    private JkChatSessionDao mJkChatSessionDao;
     // 应用实例引用
     private static Context mApplicationContext;
     // 健客聊天api监听
@@ -231,7 +221,8 @@ public class JKChatServiceImpl implements JkChatService{
                     // 设置CustomSessionID
                     tmpJkChatMessage.setCustomSessionID(tmpJkChatConversation.getAccesstoken());
                     // 更新数据库
-                    mJkChatMessageDao.update(tmpJkChatMessage);
+                    JkChatMessageDaoWrapper.getInstance(mApplicationContext)
+                            .updateMsg(tmpJkChatMessage);
                 }
             }
         }
@@ -413,15 +404,6 @@ public class JKChatServiceImpl implements JkChatService{
         mJkChatConnection = new JkChatConnectionImpl();
         // set jk chat connection listener
         mJkChatConnection.setListener(mJkChatConnectionListener);
-        // init jk chat conversation dao
-        mJkChatConversationDao = JkChatDaoManager.getInstance(mApplicationContext)
-                .getDaoSession().getJkChatConversationDao();
-        // init jk chat message dao
-        mJkChatMessageDao = JkChatDaoManager.getInstance(mApplicationContext)
-                .getDaoSession().getJkChatMessageDao();
-        // init jk chat session dao
-        mJkChatSessionDao = JkChatDaoManager.getInstance(mApplicationContext)
-                .getDaoSession().getJkChatSessionDao();
     }
 
     /**
@@ -534,17 +516,34 @@ public class JKChatServiceImpl implements JkChatService{
 
     @Override
     public List<JkChatMessage> readMesssages(int limit, int offset) {
-        return null;
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
+            return null;
+        JkChatConversation tmpChatConversation = JkChatConversationDaoWrapper
+                .getInstance(mApplicationContext).findLastConversation();
+        if (tmpChatConversation == null) {
+            return null;
+        }
+        List<JkChatMessage> result = JkChatMessageDaoWrapper.getInstance(mApplicationContext)
+                .findByPart(tmpChatConversation.getTid(), limit, offset);
+        return result;
     }
 
     @Override
-    public List<JkChatMessage> readMesssages(String cid, int limit, int offset) {
-        return null;
+    public List<JkChatMessage> readMesssages(String tid, int limit, int offset) {
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
+            return null;
+        return JkChatMessageDaoWrapper.getInstance(mApplicationContext)
+                .findByPart(tid, limit, offset);
     }
 
     @Override
     public String getLastTid() {
-        return null;
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
+            return null;
+        return  JkChatMessageDaoWrapper.getInstance(mApplicationContext).getLastTid();
     }
 
     @Override
@@ -569,6 +568,8 @@ public class JKChatServiceImpl implements JkChatService{
                 // 当应答后回调了onOpen时，将遍历消息队列，发送给医生
                 addMsgAndFilterRepeatMsg(msg);
 //                sendAndSaveMsgByLoop();
+                // 此处有逻辑待斟酌再处理
+                // undo
                 return SENDSTATUS_FILTERED;
             case CONNECTED:
                 sendAndSaveMessage(msg);
@@ -604,22 +605,37 @@ public class JKChatServiceImpl implements JkChatService{
 
     @Override
     public void saveMessage2Db(JkChatMessage msg) {
-
+        if (mApplicationContext != null){
+            // 保存消息
+            JkChatMessageDaoWrapper.getInstance(mApplicationContext).saveMsg(msg);
+        }
     }
 
     @Override
-    public void addImgRemoteUrl(boolean finish, int id, String remoteUrl) {
-
+    public void addImgRemoteUrl(boolean isSuccess, int id, String remoteUrl) {
+        if (mApplicationContext != null){
+            // 添加网络图片地址
+            JkChatMessageDaoWrapper.getInstance(mApplicationContext)
+                    .addRemoteImgUrl(isSuccess, id, remoteUrl);
+        }
     }
 
     @Override
-    public void addMoreImgRemoteUrl(boolean finish, int id, ArrayList remoteUrls) {
-
+    public void addMoreImgRemoteUrl(boolean isSuccess, int id, ArrayList remoteUrls) {
+        if (mApplicationContext != null){
+            // 添加多张网络图片集合
+            JkChatMessageDaoWrapper.getInstance(mApplicationContext)
+                    .addMoreImgRemoteUrl(isSuccess, id, remoteUrls);
+        }
     }
 
     @Override
     public JkChatMessage getImgMsg(int id) {
-        return null;
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
+            return null;
+        // 获取图片消息
+        return JkChatMessageDaoWrapper.getInstance(mApplicationContext).getImgMsg(id);
     }
 
     @Override
@@ -816,7 +832,7 @@ public class JKChatServiceImpl implements JkChatService{
     private boolean sendAndSaveMessage(JkChatMessage message) {
         boolean sendMsgSucessed = localSendMessage(message);
         if (sendMsgSucessed) {
-//            saveMessage(message);
+            saveMessage(message);
         }
         return sendMsgSucessed;
     }
@@ -896,9 +912,9 @@ public class JKChatServiceImpl implements JkChatService{
             return;
         if (jkCurrentConversation != null){
             // 保存数据库
-            if (mJkChatConversationDao != null
-                    && jkCurrentConversation.getId() == 0) {
-                mJkChatConversationDao.insert(jkCurrentConversation);
+            if (jkCurrentConversation.getId() == 0) {
+                JkChatConversationDaoWrapper.getInstance(mApplicationContext)
+                        .saveConversation(jkCurrentConversation);
                 // 设置会话id
                 message.setCid(jkCurrentConversation.getCid());
             }
@@ -925,10 +941,11 @@ public class JKChatServiceImpl implements JkChatService{
      */
     public void changeConversationStatus(int status) {
         if (jkCurrentConversation != null
+                && mApplicationContext != null
                 && jkCurrentConversation.getId() > 0) {
                 jkCurrentConversation.setStatus(status);
-                if (mJkChatConversationDao != null)
-                    mJkChatConversationDao.update(jkCurrentConversation);
+                JkChatConversationDaoWrapper.getInstance(mApplicationContext)
+                        .updateConversation(jkCurrentConversation);
         }
     }
 

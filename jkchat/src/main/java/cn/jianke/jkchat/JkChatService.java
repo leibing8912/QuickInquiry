@@ -34,12 +34,13 @@ public interface JkChatService {
     List<JkChatMessage> readMesssages(int limit, int offset);
 
     /**
-     * 从当前会话id读取消息
+     * 根据消息id读取消息
+     * @param tid
      * @param limit
      * @param offset
      * @return
      */
-    List<JkChatMessage> readMesssages(String cid, int limit, int offset);
+    List<JkChatMessage> readMesssages(String tid, int limit, int offset);
 
     /**
      * 获取上一个消息id
@@ -87,19 +88,19 @@ public interface JkChatService {
 
     /**
      * 添加单张图片网络地址
-     * @param finish
+     * @param isSuccess 是否发送成功
      * @param id 图片id
      * @param remoteUrl 网络图片地址
      */
-    void addImgRemoteUrl(boolean finish, int id, String remoteUrl);
+    void addImgRemoteUrl(boolean isSuccess, int id, String remoteUrl);
 
     /**
      * 添加多张图片网络地址
-     * @param finish
+     * @param isSuccess 是否发送成功
      * @param id 图片id
      * @param remoteUrls 网络图片地址集合
      */
-    void addMoreImgRemoteUrl(boolean finish, int id, ArrayList remoteUrls);
+    void addMoreImgRemoteUrl(boolean isSuccess, int id, ArrayList remoteUrls);
 
     /**
      * 根据图片id获取图片聊天消息数据
