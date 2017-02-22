@@ -11,7 +11,7 @@ import com.jk.chat.gen.DaoSession;
  */
 public class JkChatDaoManager {
     // jk chat dao name
-    public final static String JK_CHAT_DAO_DATABASE_NAME = "jk_chat_dao_db";
+    public final static String JK_CHAT_DAO_DATABASE_NAME = "jk_chat_db";
     // sington
     private static JkChatDaoManager instance;
     // DaoSession
