@@ -109,12 +109,12 @@ public class JKChatServiceImpl implements JkChatService{
             // 发送系统消息
             if (doctorNum > 0){
                 // 有医生在线
-                sendSystemText(mApplicationContext.getResources().getString(
-                        R.string.chat_few_keyword_doctor_online_tips));
+                sendSystemText(mApplicationContext.getResources()
+                        .getString(R.string.chat_few_keyword_doctor_online_tips));
             }else {
                 // 没有医生在线
-                sendSystemText(mApplicationContext.getResources().getString(
-                        R.string.chat_few_keyword_doctor_offline_tips));
+                sendSystemText(mApplicationContext.getResources()
+                        .getString(R.string.chat_few_keyword_doctor_offline_tips));
             }
         }
 
