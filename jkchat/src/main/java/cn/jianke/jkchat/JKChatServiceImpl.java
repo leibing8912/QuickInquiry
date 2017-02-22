@@ -93,7 +93,7 @@ public class JKChatServiceImpl implements JkChatService{
     // 健客聊天会话消息Dao
     private JkChatSessionDao mJkChatSessionDao;
     // 应用实例引用
-    private Context mApplicationContext;
+    private static Context mApplicationContext;
     // 健客聊天api监听
     private JkChatApiListener mJkChatApiListener = new JkChatApiListener() {
         @Override
@@ -222,11 +222,11 @@ public class JKChatServiceImpl implements JkChatService{
                 // 有医生在线，第一条消息发送到服务器有响应，表明发送成功，即将发送的消息的CustomSessionID设置为当前的
                 // 获取数据库中最新发送方向的聊天信息
                 JkChatMessage tmpJkChatMessage = JkChatMessageDaoWrapper
-                        .getInstance(mApplicationContext.getApplicationContext()).findLastMessage();
+                        .getInstance(mApplicationContext).findLastMessage();
                 if (tmpJkChatMessage != null) {
                     // 获取数据库中最新聊天会话数据
                     JkChatConversation tmpJkChatConversation = JkChatConversationDaoWrapper
-                            .getInstance(mApplicationContext.getApplicationContext())
+                            .getInstance(mApplicationContext)
                             .findLastConversation();
                     // 设置CustomSessionID
                     tmpJkChatMessage.setCustomSessionID(tmpJkChatConversation.getAccesstoken());
@@ -250,10 +250,10 @@ public class JKChatServiceImpl implements JkChatService{
             jkCurrentConversation.setTid(session.getTid());
             // 根据本次会话的cid将新的tid修改到本次的conversation记录中
             // 健客聊天消息更新
-            JkChatMessageDaoWrapper.getInstance(mApplicationContext.getApplicationContext())
+            JkChatMessageDaoWrapper.getInstance(mApplicationContext)
                     .modifyTidByCid(jkCurrentConversation.getCid(), session.getTid());
             // 健客聊天会话信息更新
-            JkChatConversationDaoWrapper.getInstance(mApplicationContext.getApplicationContext())
+            JkChatConversationDaoWrapper.getInstance(mApplicationContext)
                     .updataTidByCid(jkCurrentConversation.getCid(),
                             session.getTid(), jkCurrentConversation.getStatus(),
                             jkCurrentConversation.getConversationCreateTime());
@@ -297,7 +297,7 @@ public class JKChatServiceImpl implements JkChatService{
             if (mApplicationContext == null)
                 return;
             // 会话结束，将会话状态保存到本地
-            JkChatSharePerferences.getInstance(mApplicationContext.getApplicationContext()).saveConversationStatus(true);
+            JkChatSharePerferences.getInstance(mApplicationContext).saveConversationStatus(true);
             // 发送系统消息
             sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_ending));
@@ -325,7 +325,7 @@ public class JKChatServiceImpl implements JkChatService{
             if (mApplicationContext == null)
                 return;
             if (jkCurrentConversation != null)
-                JkChatMessageDaoWrapper.getInstance(mApplicationContext.getApplicationContext())
+                JkChatMessageDaoWrapper.getInstance(mApplicationContext)
                         .removeTidByCid(jkCurrentConversation.getCid());
             // 发送系统消息
             sendSystemText(mApplicationContext.getResources().getString(
@@ -349,7 +349,7 @@ public class JKChatServiceImpl implements JkChatService{
             connectStatus = CONNECTED;
             // 设置数据库中最新会话为当前会话
             jkCurrentConversation = JkChatConversationDaoWrapper
-                    .getInstance(mApplicationContext.getApplicationContext())
+                    .getInstance(mApplicationContext)
                     .findLastConversation();
         }
 
@@ -406,14 +406,14 @@ public class JKChatServiceImpl implements JkChatService{
         // set jk chat connection listener
         mJkChatConnection.setListener(mJkChatConnectionListener);
         // init jk chat conversation dao
-        mJkChatConversationDao = JkChatDaoManager.getInstance(
-                context.getApplicationContext()).getDaoSession().getJkChatConversationDao();
+        mJkChatConversationDao = JkChatDaoManager.getInstance(mApplicationContext)
+                .getDaoSession().getJkChatConversationDao();
         // init jk chat message dao
-        mJkChatMessageDao = JkChatDaoManager.getInstance(
-                context.getApplicationContext()).getDaoSession().getJkChatMessageDao();
+        mJkChatMessageDao = JkChatDaoManager.getInstance(mApplicationContext)
+                .getDaoSession().getJkChatMessageDao();
         // init jk chat session dao
-        mJkChatSessionDao = JkChatDaoManager.getInstance(
-                context.getApplicationContext()).getDaoSession().getJkChatSessionDao();
+        mJkChatSessionDao = JkChatDaoManager.getInstance(mApplicationContext)
+                .getDaoSession().getJkChatSessionDao();
     }
 
     /**
@@ -489,7 +489,7 @@ public class JKChatServiceImpl implements JkChatService{
         if (!isChatRunning){
             isChatRunning = true;
             // 将会话状态保存到本地
-            JkChatSharePerferences.getInstance(mApplicationContext.getApplicationContext())
+            JkChatSharePerferences.getInstance(mApplicationContext)
                     .saveConversationStatus(false);
             // 连接健客聊天服务器
             jkConnection();
@@ -834,21 +834,21 @@ public class JKChatServiceImpl implements JkChatService{
             return;
         // 判断是否切换了登陆状态
         boolean getIsUserLogin = JkChatSharePerferences
-                .getInstance(mApplicationContext.getApplicationContext()).getIsUserLogin();
+                .getInstance(mApplicationContext).getIsUserLogin();
         // 获取数据库最新一条会话消息中的是否登录标识
         String isLogin = JkChatConversationDaoWrapper
-                .getInstance(mApplicationContext.getApplicationContext())
+                .getInstance(mApplicationContext)
                 .getLastConversationIsLogin();
         // 获取数据库最新一条会话消息中的状态
         int status = JkChatConversationDaoWrapper
-                .getInstance(mApplicationContext.getApplicationContext())
+                .getInstance(mApplicationContext)
                 .getLastConversationStatus();
         // 若满足登录状态一致，消息状态不为空或者已结束则拿取数据库最后一条会话作为当前会话
         if (isLogin != null && status != JkChatConversation.STATUS_NULL
                 && Boolean.parseBoolean(isLogin) == getIsUserLogin
                 && status != JkChatConversation.STATUS_FINISHED) {
             jkCurrentConversation = JkChatConversationDaoWrapper
-                    .getInstance(mApplicationContext.getApplicationContext())
+                    .getInstance(mApplicationContext)
                     .findLastConversation();
         }
         // 若当前会话为空则创建新会话
@@ -882,7 +882,7 @@ public class JKChatServiceImpl implements JkChatService{
             }
             // 将全部接收到消息的cid设置为当前对话的cid
             JkChatConversation lastJkChatConversation = JkChatConversationDaoWrapper
-                    .getInstance(mApplicationContext.getApplicationContext())
+                    .getInstance(mApplicationContext)
                     .findLastConversation();
             if (message.getDirect().equals(JkChatMessage.DIRECT_RECEIVE)
                     && message.getCustomSessionID() != null
