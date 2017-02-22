@@ -290,6 +290,8 @@ public class JKChatServiceImpl implements JkChatService{
             }
             if (mJkChatServiceListener != null)
                 mJkChatServiceListener.onReceivedMessage(message);
+            // 保存消息到数据库
+            saveMessage(message);
         }
 
         @Override
@@ -836,6 +838,42 @@ public class JKChatServiceImpl implements JkChatService{
         // 若当前会话为空则创建新会话
         if (jkCurrentConversation == null) {
             jkCurrentConversation = JkChatConversation.newConversation();
+        }
+    }
+
+    /**
+     * 保存消息到数据库
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param message 健客聊天消息
+     * @return
+     */
+    public void saveMessage(JkChatMessage message) {
+        // 若页面实例引用为空则返回
+        if (mContextWeakRef == null || mContextWeakRef.get() == null)
+            return;
+        // 消息为空则返回
+        if (message == null)
+            return;
+        if (jkCurrentConversation != null){
+            // 保存数据库
+            if (mJkChatConversationDao != null
+                    && jkCurrentConversation.getId() == 0) {
+                mJkChatConversationDao.insert(jkCurrentConversation);
+                // 设置会话id
+                message.setCid(jkCurrentConversation.getCid());
+            }
+            // 将全部接收到消息的cid设置为当前对话的cid
+            JkChatConversation lastJkChatConversation = JkChatConversationDaoWrapper
+                    .getInstance(mContextWeakRef.get().getApplicationContext())
+                    .findLastConversation();
+            if (message.getDirect().equals(JkChatMessage.DIRECT_RECEIVE)
+                    && message.getCustomSessionID() != null
+                    && lastJkChatConversation != null
+                    && lastJkChatConversation.getCid() != null){
+                    message.setCid(lastJkChatConversation.getCid());
+            }
         }
     }
 
