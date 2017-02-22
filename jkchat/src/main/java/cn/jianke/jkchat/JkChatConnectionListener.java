@@ -100,4 +100,10 @@ public interface JkChatConnectionListener {
      * @param
      */
     void onForbidAskQuestion();
+
+    /**
+     * 等待提示
+     * @param message 健客聊天消息实体
+     */
+    void onWaitForAnswer(JkChatMessage message);
 }

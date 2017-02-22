@@ -357,6 +357,8 @@ public class JKChatServiceImpl implements JkChatService{
         public void onGetServerMessageDone() {
             // 设置已完成第一次请求
             isFinishedFirstRequest = true;
+            // 此处有逻辑待斟酌再处理
+            // undo
         }
 
         @Override
@@ -379,6 +381,12 @@ public class JKChatServiceImpl implements JkChatService{
             // 发送系统消息
             sendSystemText(mApplicationContext.getResources().getString(
                     R.string.chat_limit_ip));
+        }
+
+        @Override
+        public void onWaitForAnswer(JkChatMessage message) {
+            // 发送系统消息
+            sendSystemText(message.getMsg());
         }
     };
 
@@ -498,6 +506,17 @@ public class JKChatServiceImpl implements JkChatService{
 
     @Override
     public void stop() {
+        // 若应用实例为空则返回
+        if (mApplicationContext == null)
+            return;
+        // 更改会话信息状态为等待中
+        JkChatConversation chatConversation = JkChatConversationDaoWrapper
+                .getInstance(mApplicationContext).findLastConversation();
+        if (chatConversation != null) {
+            if (chatConversation.getStatus() != JkChatConversation.STATUS_FINISHED) {
+                changeConversationStatus(JkChatConversation.STATUS_WAITING);
+            }
+        }
         if (isChatRunning){
             isChatRunning = false;
             // 取消所有请求
@@ -507,6 +526,9 @@ public class JKChatServiceImpl implements JkChatService{
             if (mJkChatConnection != null
                     && mJkChatConnection.isConnected())
                 mJkChatConnection.disconnect();
+        }else {
+            // // 更改会话信息状态为完成
+            changeConversationStatus(JkChatConversation.STATUS_FINISHED);
         }
     }
 
@@ -890,6 +912,23 @@ public class JKChatServiceImpl implements JkChatService{
                     && lastJkChatConversation.getCid() != null){
                     message.setCid(lastJkChatConversation.getCid());
             }
+        }
+    }
+
+    /**
+     * 更改会话信息状态
+     * @author leibing
+     * @createTime 2017/2/22
+     * @lastModify 2017/2/22
+     * @param status 会话消息状态
+     * @return
+     */
+    public void changeConversationStatus(int status) {
+        if (jkCurrentConversation != null
+                && jkCurrentConversation.getId() > 0) {
+                jkCurrentConversation.setStatus(status);
+                if (mJkChatConversationDao != null)
+                    mJkChatConversationDao.update(jkCurrentConversation);
         }
     }
 
