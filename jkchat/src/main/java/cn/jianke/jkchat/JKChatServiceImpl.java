@@ -348,8 +348,8 @@ public class JKChatServiceImpl implements JkChatService{
         public void onGetServerMessageDone() {
             // 设置已完成第一次请求
             isFinishedFirstRequest = true;
-            // 此处有逻辑待斟酌再处理
-            // undo
+            // 通过遍历、循环发送、保存信息、刷新界面
+            sendAndSaveMsgByLoop();
         }
 
         @Override
@@ -567,9 +567,7 @@ public class JKChatServiceImpl implements JkChatService{
                 // 医生未应答时，消息加到消息队列，
                 // 当应答后回调了onOpen时，将遍历消息队列，发送给医生
                 addMsgAndFilterRepeatMsg(msg);
-//                sendAndSaveMsgByLoop();
-                // 此处有逻辑待斟酌再处理
-                // undo
+                sendAndSaveMsgByLoop();
                 return SENDSTATUS_FILTERED;
             case CONNECTED:
                 sendAndSaveMessage(msg);
@@ -946,6 +944,57 @@ public class JKChatServiceImpl implements JkChatService{
                 jkCurrentConversation.setStatus(status);
                 JkChatConversationDaoWrapper.getInstance(mApplicationContext)
                         .updateConversation(jkCurrentConversation);
+        }
+    }
+
+    /**
+     * 通过遍历、循环发送、保存信息、刷新界面
+     * @author leibing
+     * @createTime 2017/2/24
+     * @lastModify 2017/2/24
+     * @param
+     * @return
+     */
+    private void sendAndSaveMsgByLoop() {
+        try {
+            if (mJkChatConnection != null
+                    && mJkChatConnection.isConnected()) {
+                for (int i = 0; i < tmpMessages.size(); i++) {
+                    // 如果是未成功上传的图片，即没有图片网络地址，不能发送
+                    if (tmpMessages.get(i).getMsgType()
+                            .equals(JkChatMessage.TYPE_IMG)
+                            && (tmpMessages.get(i).getRemoteUrl() == null || tmpMessages
+                            .get(i).getRemoteUrl().equals(""))) {
+                        if (mJkChatServiceListener != null) {
+                            mJkChatServiceListener.compressImgSaveLocalAndDisCache(
+                                    tmpMessages.get(i).getLocalUrl(), 480, 800);
+                            tmpMessages.remove(i);
+                            i--;
+                            return;
+                        }
+                    }
+
+                    if (jkCurrentConversation != null) {
+                        tmpMessages.get(i).setTid(jkCurrentConversation.getTid());
+                    }
+                    mJkChatConnection.sendMessage(tmpMessages.get(i));
+                    saveMessage(tmpMessages.get(i));
+                    if (!tmpMessages.get(i).getMsgType()
+                            .equalsIgnoreCase(JkChatMessage.TYPE_IMG)) {
+                        if (mJkChatServiceListener != null)
+                            mJkChatServiceListener.onRefreshData(tmpMessages.get(i));
+                    }
+                    tmpMessages.remove(i);
+                    i--;
+                }
+                if (mJkChatServiceListener != null)
+                    mJkChatServiceListener.onCommand(1);
+            } else {
+                if (mJkChatServiceListener != null)
+                    mJkChatServiceListener.onNetworkUnavaiable(1);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
